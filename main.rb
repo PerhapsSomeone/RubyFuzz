@@ -18,7 +18,7 @@ def domain_exists?(domain)
 end
 
 def subdomain_scan()
-    print "Domain name: "
+    print "Domain name: ".yellow
     base_domain = gets.chomp
     start = Time.now    
     IO.foreach('./fuzzdb/discovery/dns/dnsmapCommonSubdomains.txt') do |line|
@@ -28,22 +28,40 @@ def subdomain_scan()
         end
     end
     finish = Time.now
-    puts "Finished scan in " + (finish - start).round(3).to_s + " seconds."
+    puts "[*] Finished scan in ".blue + (finish - start).round(3).to_s.blue + " seconds.".blue
     main_menu()
 end
 
+def login_scan()
+    print "Base URL: ".yellow
+    base_url = gets.chomp
+    start = Time.now
+
+    IO.foreach("./fuzzdb/discovery/predictable-filepaths/login-file-locations/php.txt") do |line|
+        line.strip!
+        response = HTTParty.get(base_url + "/" + line)
+        if response.code != 404 then
+            puts "/".green + line.green + " - ".green + response.code.to_s.green
+        end
+    end
+    finish = Time.now
+    puts "[*] Finished scan in ".blue + (finish - start).round(3).to_s.blue + " seconds.".blue
+    main_menu()
+end
 
 def main_menu()
-    puts "RubyFuzz v0.1"
+    puts File.read("logo.txt")
     puts "1) Subdomain Scan"
-
+    puts "2) Domain Scan"
     puts "99) Exit"
 
     print "$ "
     choice = gets.chomp.to_i
 
     if choice == 1 then
-        subdomain_scan()        
+        subdomain_scan() 
+    elsif choice == 2 then
+        login_scan()       
     elsif choice == 99 then
         exit()
     end
